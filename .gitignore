@@ -1,30 +1,26 @@
-# Archivos generados por el sistema
-.DS_Store
-*.log
+# Ignora node_modules en cualquier subcarpeta
+**/node_modules/
 
-# Dependencias
-node_modules/
-**/node_modules/*
-.expo/
+# Builds de Android e iOS
+**/android/build/
+**/android/app/build/
+**/android/app/.cxx/
+**/ios/build/
+**/ios/Pods/
 
 # Variables de entorno
-.env
-.env.local
+**/.env
+**/.env.local
 
-# Android
-android/.gradle/
-android/app/build/
-android/build/
-/local.properties
-
-# iOS
-ios/**/build/
-ios/Pods/
-ios/*.xcworkspace
-
-node_modules/
-android/
-ios/
-.expo/
-.env
+# Archivos de sistema y logs
+.DS_Store
 *.log
+npm-debug.log*
+
+# Expo
+**/.expo/
+**/.expo-shared/
+
+# Dependencias de iOS (Mac)
+**/ios/*.xcworkspace
+**/ios/*.xcuserstate
