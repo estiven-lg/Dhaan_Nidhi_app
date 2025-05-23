@@ -1,0 +1,30 @@
+# Archivos generados por el sistema
+.DS_Store
+*.log
+
+# Dependencias
+node_modules/
+**/node_modules/*
+.expo/
+
+# Variables de entorno
+.env
+.env.local
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+/local.properties
+
+# iOS
+ios/**/build/
+ios/Pods/
+ios/*.xcworkspace
+
+node_modules/
+android/
+ios/
+.expo/
+.env
+*.log
