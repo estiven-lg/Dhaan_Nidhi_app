@@ -1,7 +1,8 @@
 
 # Dhaan Nidhi - Sistema de Gestión
 
-![Logo](https://via.placeholder.com/150x50?text=Dhaan+Nidhi) <!-- Reemplaza con la URL de tu logo real -->
+![iTunesArtwork@1x](https://github.com/user-attachments/assets/5f45e0c9-7a62-4b3b-95f1-655390a1bfbf)
+
 
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
 ![React Native](https://img.shields.io/badge/react_native-%5E0.72-blue)
