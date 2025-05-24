@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import getHostname from '../utils';
 import userData from '../UserData';
 
+import { useTranslation } from 'react-i18next';
 
 /**
  * Registra una nueva compra de producto en el sistema
@@ -63,26 +64,21 @@ const createProductPurchase = async (id_producto, cantidad, puntos_usados) => {
 };
 
 const ShopScreen = ({ navigation }) => {
-  const [loading, setLoading] = useState(false);
+  const { t } = useTranslation(); // Add this line
+  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
 
-
-  // Función para cargar datos del usuario
   const fetchUserData = async () => {
     try {
       const response = await fetch(getHostname() + 'api/usuarios/' + userData.user.id_usuario);
       const data = await response.json();
-      console.log(data);
-
       userData.user = data;
-      // return data.puntos; // Asume que la respuesta incluye los puntos
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      return userData.user.puntos; // Mantiene los puntos actuales si hay error
+      console.error(t('fetch_user_error'), error);
+      return userData.user.puntos;
     }
   };
 
-  // Función para cargar productos
   const fetchProducts = async () => {
     try {
       const response = await fetch(getHostname() + 'api/producto');
@@ -92,12 +88,11 @@ const ShopScreen = ({ navigation }) => {
         quantity: 1
       }));
     } catch (error) {
-      console.error('Error fetching products:', error);
-      return products; // Mantiene los productos actuales si hay error
+      console.error(t('fetch_products_error'), error);
+      return products;
     }
   };
 
-  // Función combinada para refresh
   const refreshData = useCallback(async () => {
     setLoading(true);
     try {
@@ -105,15 +100,13 @@ const ShopScreen = ({ navigation }) => {
         fetchUserData(),
         fetchProducts()
       ]);
-
       setProducts(newProducts);
     } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar los datos');
+      Alert.alert(t('error'), t('refresh_error'));
     } finally {
       setLoading(false);
     }
   }, []);
-
   // Carga inicial
   useEffect(() => {
     const loadData = async () => {
@@ -123,7 +116,7 @@ const ShopScreen = ({ navigation }) => {
     };
     loadData().then(console.log).catch(console.error);
   }, [refreshData]);
-
+  
   const handleQuantityChange = (id, value) => {
     const newQuantity = parseInt(value) || 1;
     if (newQuantity < 1) return;
@@ -134,10 +127,9 @@ const ShopScreen = ({ navigation }) => {
         : product
     ));
   };
-
   const handleRedeem = async (product) => {
     if (product.stock <= 0) {
-      Alert.alert('Agotado', 'Este producto no está disponible en este momento');
+      Alert.alert(t('out_of_stock'), t('product_unavailable'));
       return;
     }
 
@@ -146,50 +138,51 @@ const ShopScreen = ({ navigation }) => {
     if (userData.user.puntos >= totalPoints) {
       try {
         Alert.alert(
-          'Confirmar Canje',
-          `¿Deseas canjear ${product.quantity} ${product.nombre} por ${totalPoints} puntos?`,
+          t('confirm_redeem'),
+          t('redeem_confirmation_message', {
+            quantity: product.quantity,
+            name: product.nombre,
+            points: totalPoints
+          }),
           [
             {
-              text: 'Cancelar',
+              text: t('cancel'),
               style: 'cancel'
             },
             {
-              text: 'Confirmar',
+              text: t('confirm'),
               onPress: async () => {
-                // Registrar la compra en el backend
                 await createProductPurchase(
                   product.id_producto,
                   product.quantity,
                   totalPoints
                 );
-
                 refreshData();
-         
-
                 Alert.alert(
-                  '¡Canje Exitoso!',
-                  `Has adquirido ${product.quantity} ${product.nombre}\n\nPuntos restantes: ${newPoints}`,
-                  [
-                    { text: 'Aceptar', onPress: () => { } }
-                  ]
+                  t('redeem_success'),
+                  t('redeem_success_message', {
+                    quantity: product.quantity,
+                    name: product.nombre,
+                    points: userData.user.puntos
+                  }),
+                  [{ text: t('ok') }]
                 );
               }
             }
           ]
         );
       } catch (error) {
-        Alert.alert(
-          'Error',
-          'Ocurrió un error al procesar tu compra: ' + error.message
-        );
+        Alert.alert(t('error'), t('purchase_error') + error.message);
       }
     } else {
       Alert.alert(
-        'Puntos Insuficientes',
-        `Necesitas ${totalPoints - userData.user.puntos} puntos más para canjear ${product.quantity} ${product.nombre}.`,
-        [
-          { text: 'Entendido', onPress: () => { } }
-        ]
+        t('insufficient_points'),
+        t('points_needed_message', {
+          needed: totalPoints - userData.user.puntos,
+          quantity: product.quantity,
+          name: product.nombre
+        }),
+        [{ text: t('understand') }]
       );
     }
   };
@@ -230,9 +223,9 @@ const ShopScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.priceContainer}>
-            <Text style={styles.productPrice}>{item.precio_puntos * item.quantity} pts</Text>
+            <Text style={styles.productPrice}>{item.precio_puntos * item.quantity} {t('points')}</Text>
             <Text style={styles.productStock}>
-              {item.stock > 0 ? `Disponible: ${item.stock}` : 'AGOTADO'}
+              {item.stock > 0 ? `${t('available')}: ${item.stock}` : t('sold_out')}
             </Text>
           </View>
         </View>
@@ -247,7 +240,7 @@ const ShopScreen = ({ navigation }) => {
         disabled={userData.user.puntos < item.precio_puntos * item.quantity || item.stock <= 0}
       >
         <Icon name="shopping-cart" size={20} color="white" />
-        <Text style={styles.redeemButtonText}>Canjear</Text>
+        <Text style={styles.redeemButtonText}>{t('redeem')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -258,7 +251,7 @@ const ShopScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tienda de Productos</Text>
+        <Text style={styles.headerTitle}>{t('product_store')}</Text>
         <TouchableOpacity onPress={refreshData}>
           <Icon name="refresh" size={24} color="#4CAF50" />
         </TouchableOpacity>
@@ -266,7 +259,7 @@ const ShopScreen = ({ navigation }) => {
 
       <View style={styles.pointsContainer}>
         <View style={styles.pointsHeader}>
-          <Text style={styles.pointsText}>Tus Puntos:</Text>
+          <Text style={styles.pointsText}>{t('your_points')}:</Text>
           <TouchableOpacity onPress={refreshData}>
             <Icon name="refresh" size={20} color="#4CAF50" />
           </TouchableOpacity>
@@ -280,7 +273,7 @@ const ShopScreen = ({ navigation }) => {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4CAF50" />
-          <Text style={styles.loadingText}>Cargando productos...</Text>
+          <Text style={styles.loadingText}>{t('loading_products')}</Text>
         </View>
       ) : (
         <FlatList
@@ -288,23 +281,16 @@ const ShopScreen = ({ navigation }) => {
           renderItem={renderProductItem}
           keyExtractor={(item) => item.id_producto.toString()}
           contentContainerStyle={styles.listContent}
-          // showsVerticalScrollIndicator={loading}
-          // refreshControl={
-          //   <RefreshControl
-          //     refreshing={refreshing}
-          //     onRefresh={refreshData}
-          //     colors={['#4CAF50']}
-          //     tintColor="#4CAF50"
-          //   />
-          // }
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No hay productos disponibles</Text>
+            <Text style={styles.emptyText}>{t('no_products')}</Text>
           }
         />
       )}
     </SafeAreaView>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

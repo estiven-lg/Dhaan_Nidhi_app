@@ -3,19 +3,20 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-nativ
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import getHostname from '../utils';
 import userData from '../UserData';
+import { useTranslation } from 'react-i18next';
 
 const ComprasScreen = () => {
+  const { t } = useTranslation(); // Add this line
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCompras = async () => {
     try {
-      
-      const response = await fetch(getHostname() + 'api/compra_producto/usuario/' + userData.user.id_usuario); // <-- ajusta URL
+      const response = await fetch(getHostname() + 'api/compra_producto/usuario/' + userData.user.id_usuario);
       const data = await response.json();
       setCompras(data);
     } catch (error) {
-      console.error('Error cargando compras:', error);
+      console.error(t('load_purchases_error'), error);
     } finally {
       setLoading(false);
     }
@@ -29,27 +30,27 @@ const ComprasScreen = () => {
     <View style={styles.item}>
       <View style={styles.row}>
         <Icon name="person" size={18} color="#555" />
-        <Text style={styles.label}> Usuario ID: </Text>
+        <Text style={styles.label}>{t('user_id')}: </Text>
         <Text style={styles.value}>{item.id_usuario}</Text>
       </View>
       <View style={styles.row}>
         <Icon name="shopping-cart" size={18} color="#555" />
-        <Text style={styles.label}> Producto ID: </Text>
+        <Text style={styles.label}>{t('product_id')}: </Text>
         <Text style={styles.value}>{item.id_producto}</Text>
       </View>
       <View style={styles.row}>
         <Icon name="calendar-today" size={18} color="#555" />
-        <Text style={styles.label}> Fecha: </Text>
+        <Text style={styles.label}>{t('date')}: </Text>
         <Text style={styles.value}>{new Date(item.fecha).toLocaleDateString()}</Text>
       </View>
       <View style={styles.row}>
         <Icon name="inventory" size={18} color="#555" />
-        <Text style={styles.label}> Cantidad: </Text>
+        <Text style={styles.label}>{t('quantity')}: </Text>
         <Text style={styles.value}>{item.cantidad}</Text>
       </View>
       <View style={styles.row}>
         <Icon name="loyalty" size={18} color="#555" />
-        <Text style={styles.label}> Puntos usados: </Text>
+        <Text style={styles.label}>{t('points_used')}: </Text>
         <Text style={styles.value}>{item.puntos_usados}</Text>
       </View>
     </View>
@@ -57,7 +58,7 @@ const ComprasScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Historial de Compras</Text>
+      <Text style={styles.title}>{t('purchase_history')}</Text>
       {loading ? (
         <ActivityIndicator size="large" color="#007AFF" />
       ) : (
@@ -71,7 +72,6 @@ const ComprasScreen = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -6,17 +6,22 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import userData from '../UserData';
+import { useTranslation } from 'react-i18next'; // Importa el hook useTranslation
+import getHostname from '../utils';
 
 const HomeScreen = ({ navigation }) => {
-  const [language, setLanguage] = useState('en');
-  const [balance, setBalance] = useState(1250);
+  const { t, i18n } = useTranslation(); // Get i18n instance
+  const [loading, setLoading] = useState(false);
+
 
   const handleSetLanguage = () => {
-    setLanguage(prev => (prev === 'en' ? 'hi' : 'en'));
+    const newLang = i18n.language === 'en' ? 'hi' : 'en';
+    i18n.changeLanguage(newLang); // Use i18n's language change function
   };
 
   const handleRedeem = () => {
@@ -27,9 +32,22 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('Compras');
   };
 
-  useEffect(() => {
-    console.log('User Data:', userData);
-  }, []);
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(getHostname() + 'api/usuarios/' + userData.user.id_usuario);
+      const data = await response.json();
+      userData.user = data;
+    } catch (error) {
+      console.error(t('fetch_user_error'), error);
+      return userData.user.puntos;
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,40 +57,43 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.header}>
         <TouchableOpacity style={styles.languageSelector} onPress={handleSetLanguage}>
           <Text style={styles.languageText}>
-            {language === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English'}
+            {i18n.language === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English'}
           </Text>
         </TouchableOpacity>
-        
+        <TouchableOpacity onPress={fetchUserData} style={styles.cartButton}>
+          <Icon name="refresh" size={24} color="#2e7d32" />
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleViewHistory} style={styles.cartButton}>
           <Icon name="shopping-cart" size={24} color="#2e7d32" />
         </TouchableOpacity>
       </View>
 
       <Text style={styles.welcomeText}>
-        Bienvenido {userData.user.nombre} 👋
+        {t('welcome_message', { name: userData.user.nombre })} 👋
       </Text>
 
-      {/* Balance con degradado */}
-      <LinearGradient colors={['#A8E063', '#56AB2F']} style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>
-          {language === 'hi' ? 'कुल शेष' : 'Total Balance'}
-        </Text>
-        <Text style={styles.balanceAmount}>{userData.user.puntos}</Text>
-        <Text style={styles.balancePoints}>
-          {language === 'hi' ? 'पॉइंट्स' : 'Points'} ⭐
-        </Text>
-      </LinearGradient>
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={styles.loadingText}>{t('loading_products')}</Text>
+        </View>
+      )
+        :
+        <LinearGradient colors={['#A8E063', '#56AB2F']} style={styles.balanceCard}>
+          <Text style={styles.balanceLabel}>{t('total_balance')}</Text>
+          <Text style={styles.balanceAmount}>{userData.user.puntos}</Text>
+          <Text style={styles.balancePoints}>{t('points')} ⭐</Text>
+        </LinearGradient>
+      }
 
       {/* Botón de canjear puntos */}
       <TouchableOpacity style={styles.redeemButton} onPress={handleRedeem}>
-        <Text style={styles.redeemButtonText}>
-          {language === 'hi' ? 'पॉइंट्स रिडीम करें' : 'Redeem Points'}
-        </Text>
+        <Text style={styles.redeemButtonText}>{t('redeem_points')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -101,8 +122,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   welcomeText: {
-    fontSize: 20, 
-    textAlign: 'center', 
+    fontSize: 20,
+    textAlign: 'center',
     marginTop: 20,
     color: '#333',
   },

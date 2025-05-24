@@ -13,10 +13,13 @@ import {
   Alert
 } from 'react-native';
 import { getHostname } from '../utils';
+import { useTranslation } from 'react-i18next';
+
 
 
 
 const LoginScreen = ({ navigation }) => {
+  const { t, i18n } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isFocusedUser, setIsFocusedUser] = useState(false);
@@ -53,6 +56,11 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleSetLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'hi' : 'en';
+    i18n.changeLanguage(newLang); // Use i18n's language change function
+  };
+
   const handleCreateAccount = () => {
     navigation.navigate('CrearUsuario');
   }
@@ -64,15 +72,20 @@ const LoginScreen = ({ navigation }) => {
     >
       <View style={styles.background}>
         <View style={styles.innerContainer}>
+          <TouchableOpacity style={styles.languageSelector} onPress={handleSetLanguage}>
+            <Text style={styles.languageText}>
+              {i18n.language === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English'}
+            </Text>
+          </TouchableOpacity>
           <Image
-            source={require('../assets/farmer.png')} // Reemplaza con tu imagen
+            source={require('../assets/farmer.png')}
             style={styles.logo}
           />
-          <Text style={styles.title}>Bienvenido Agricultor</Text>
-          <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+          <Text style={styles.title}>{t('welcome_farmer')}</Text>
+          <Text style={styles.subtitle}>{t('login_to_continue')}</Text>
 
           <TextInput
-            placeholder="Usuario"
+            placeholder={t('username')}
             placeholderTextColor="#999"
             value={username}
             onChangeText={setUsername}
@@ -83,7 +96,7 @@ const LoginScreen = ({ navigation }) => {
           />
 
           <TextInput
-            placeholder="Contraseña"
+            placeholder={t('password')}
             placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
@@ -94,17 +107,19 @@ const LoginScreen = ({ navigation }) => {
           />
 
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Iniciar Sesión</Text>
+            <Text style={styles.buttonText}>{t('login')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleCreateAccount}>
-            <Text style={styles.forgotPassword}>Crear Cuenta</Text>
+            <Text style={styles.forgotPassword}>{t('create_account')}</Text>
           </TouchableOpacity>
         </View>
       </View>
     </KeyboardAvoidingView>
   );
 };
+
+
 
 const windowHeight = Dimensions.get('window').height;
 

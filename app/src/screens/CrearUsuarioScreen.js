@@ -12,6 +12,7 @@ import {
     Image
 } from 'react-native';
 import { getHostname } from '../utils';
+import { useTranslation } from 'react-i18next';
 
 const CreateUserScreen = ({ navigation }) => {
     const [nombre, setNombre] = useState('');
@@ -20,131 +21,124 @@ const CreateUserScreen = ({ navigation }) => {
     const [isFocusedPassword, setIsFocusedPassword] = useState(false);
     const [isFocusedNombre, setIsFocusedNombre] = useState(false);
     const [isFocusedCorreo, setIsFocusedCorreo] = useState(false);
+    const { t } = useTranslation();
 
 
 
 
 
-    const handleCreateUser = async () => {
-        // Validación de campos
-        if (!nombre.trim()) {
-            Alert.alert('Error', 'El nombre es obligatorio');
-            return;
-        }
+ const handleCreateUser = async () => {
+    // Validación de campos
+    if (!nombre.trim()) {
+      Alert.alert(t('error'), t('name_required'));
+      return;
+    }
 
-        // Preparación del objeto usuario
-        const nuevoUsuario = {
-            nombre,
-            correo: correo.trim() || 'No especificado',
-            password,
-            tipo: 'agricultor',
-        };
-
-        // Configuración de la petición
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(nuevoUsuario),
-        };
-
-        try {
-            // Ejecución de la petición
-            const res = await fetch(getHostname() + 'api/usuarios/', requestOptions);
-
-            console.log('Response:', res);
-            // Manejo de la respuesta
-            if (res.status === 201) {
-                navigation.replace('Login');
-                Alert.alert('Éxito', 'Registro exitoso');
-            } else {
-     
-                Alert.alert('Error', 'Error al registrar');
-            }
-        } catch (error) {
-            // Manejo de errores
-            console.error('Error during login:', error);
-            Alert.alert('Error', 'Error de conexión');
-        }
+    // Preparación del objeto usuario
+    const nuevoUsuario = {
+      nombre,
+      correo: correo.trim() || t('not_specified'),
+      password,
+      tipo: 'agricultor',
     };
 
-    return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <View style={styles.header}>
-                    <Image
-                        source={require('../assets/farmer2.png')}
-                        style={styles.headerImage}
-                    />
-                </View>
+    try {
+      const res = await fetch(getHostname() + 'api/usuarios/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoUsuario),
+      });
 
-                <View style={styles.formContainer}>
-                    <Text style={styles.title}>Registro de Agricultor</Text>
-                    <Text style={styles.subtitle}>Completa tus datos para comenzar</Text>
+      if (res.status === 201) {
+        navigation.replace('Login');
+        Alert.alert(t('success'), t('registration_success'));
+      } else {
+        Alert.alert(t('error'), t('registration_error'));
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      Alert.alert(t('error'), t('connection_error'));
+    }
+  };
 
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Nombre completo*</Text>
-                        <TextInput
-                            placeholder="Ej: Juan Pérez"
-                            placeholderTextColor="#999"
-                            value={nombre}
-                            onChangeText={setNombre}
-                            style={[styles.input, isFocusedNombre && styles.inputFocused]}
-                            onFocus={() => setIsFocusedNombre(true)}
-                            onBlur={() => setIsFocusedNombre(false)}
-                        />
-                    </View>
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Image
+            source={require('../assets/farmer2.png')}
+            style={styles.headerImage}
+          />
+        </View>
 
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Correo electrónico</Text>
-                        <TextInput
-                            placeholder="Ej: juan@agricultor.com"
-                            placeholderTextColor="#999"
-                            value={correo}
-                            onChangeText={setCorreo}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            style={[styles.input, isFocusedCorreo && styles.inputFocused]}
-                            onFocus={() => setIsFocusedCorreo(true)}
-                            onBlur={() => setIsFocusedCorreo(false)}
-                        />
-                        <Text style={styles.optionalText}>(Opcional)</Text>
-                    </View>
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>{t('farmer_registration')}</Text>
+          <Text style={styles.subtitle}>{t('complete_data_to_start')}</Text>
 
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Contraseña</Text>
-                        <TextInput
-                            placeholderTextColor="#999"
-                            value={password}
-                            onChangeText={setPassword}
-                            autoCapitalize="none"
-                            style={[styles.input, isFocusedCorreo && styles.inputFocused]}
-                            onFocus={() => setIsFocusedPassword(true)}
-                            onBlur={() => setIsFocusedPassword(false)}
-                            secureTextEntry
-                        />
-                    </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>{t('full_name')}*</Text>
+            <TextInput
+              placeholder={t('name_example')}
+              placeholderTextColor="#999"
+              value={nombre}
+              onChangeText={setNombre}
+              style={[styles.input, isFocusedNombre && styles.inputFocused]}
+              onFocus={() => setIsFocusedNombre(true)}
+              onBlur={() => setIsFocusedNombre(false)}
+            />
+          </View>
 
-                    <TouchableOpacity
-                        style={styles.button}
-                        onPress={handleCreateUser}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.buttonText}>Registrarse</Text>
-                    </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>{t('email')}</Text>
+            <TextInput
+              placeholder={t('email_example')}
+              placeholderTextColor="#999"
+              value={correo}
+              onChangeText={setCorreo}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={[styles.input, isFocusedCorreo && styles.inputFocused]}
+              onFocus={() => setIsFocusedCorreo(true)}
+              onBlur={() => setIsFocusedCorreo(false)}
+            />
+            <Text style={styles.optionalText}>({t('optional')})</Text>
+          </View>
 
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Text style={styles.backButtonText}>Volver atrás</Text>
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
-    );
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>{t('password')}</Text>
+            <TextInput
+              placeholderTextColor="#999"
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              style={[styles.input, isFocusedCorreo && styles.inputFocused]}
+              onFocus={() => setIsFocusedPassword(true)}
+              onBlur={() => setIsFocusedPassword(false)}
+              secureTextEntry
+            />
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleCreateUser}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>{t('register')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>{t('go_back')}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 };
 
 const styles = StyleSheet.create({
